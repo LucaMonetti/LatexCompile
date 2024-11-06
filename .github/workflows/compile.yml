@@ -23,10 +23,15 @@ jobs:
           sudo apt-get update && \
           sudo apt-get install -y texlive-base texlive-lang-italian texlive-fonts-recommended texlive-latex-extra
 
-      - name: Identify modified .tex files
-        id: modified-files
+
+      - name: Generate modified files list
         run: |
-          git diff --name-only HEAD^ HEAD | grep '^src/.*\.tex$' | sed 's|^src/||' > modified_files.txt || true
+          if git rev-parse --verify HEAD^; then
+            git diff --name-only HEAD^ HEAD | grep '^src/.*\\.tex$' | sed 's|^src/||' > modified_files.txt
+          else
+            echo "No previous commit found. Skipping diff."
+            touch modified_files.txt
+          fi
 
       - name: Compile .tex files
         run: |
