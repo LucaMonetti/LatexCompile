@@ -6,13 +6,17 @@ on:
     paths:
       - "src/**"
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   compile:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install LaTeX
         run: |
@@ -23,12 +27,14 @@ jobs:
         run: |
           mkdir -p output
           cd src
-          find . -name "*.tex" ! -path "./Candidature/Verbali/Esterni/*"| while read tex_file; do
-            output_dir="../output/$(dirname "$tex_file")"
-            mkdir -p "$output_dir"
-            pdflatex -interaction=nonstopmode -output-directory "$output_dir" "$tex_file" || true
-            pdflatex -interaction=nonstopmode -output-directory "$output_dir" "$tex_file" || true
-          done
+          while IFS= read -r tex_file; do
+            if [ -f "$tex_file" ]; then
+              output_dir="../output/$(dirname "$tex_file")"
+              mkdir -p "$output_dir"
+              pdflatex -interaction=nonstopmode -output-directory "$output_dir" "$tex_file" || true
+              pdflatex -interaction=nonstopmode -output-directory "$output_dir" "$tex_file" || true
+            fi
+          done < ../modified_files.txt
 
       - name: Copy Compiled Files to Public Folder
         run: |
